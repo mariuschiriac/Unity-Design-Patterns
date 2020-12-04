@@ -8,19 +8,21 @@ using System.Collections.Generic;
 public class InputHandler : MonoBehaviour
 {
     public float moveDistance = 10f;
-    public GameObject objectToMove;
+    public GameObject objectTarget;
 
-    private MoveCommandReceiver moveCommandReciever;
-    private List<MoveCommand> commands = new List<MoveCommand>();
+    private MoveReceiver moveReceiver;
+    private ChangeColorReceiver changeColorReceiver;
+    private List<Command> commands = new List<Command>();
     private int currentCommandNum = 0;
 
     void Start()
     {
-        moveCommandReciever = new MoveCommandReceiver();
+        moveReceiver = new MoveReceiver();
+        changeColorReceiver = new ChangeColorReceiver();
 
-        if (objectToMove == null)
+        if (objectTarget == null)
         {
-            Debug.LogError("objectToMove must be assigned via inspector");
+            Debug.LogError("objectTarget must be assigned via inspector");
             this.enabled = false;
         }
     }
@@ -31,8 +33,8 @@ public class InputHandler : MonoBehaviour
         if (currentCommandNum > 0)
         {
             currentCommandNum--;
-            MoveCommand moveCommand = commands[currentCommandNum];
-            moveCommand.UnExecute();
+            Command Command = commands[currentCommandNum];
+            Command.UnExecute();
         }
     }
 
@@ -40,18 +42,29 @@ public class InputHandler : MonoBehaviour
     {
         if (currentCommandNum < commands.Count)
         {
-            MoveCommand moveCommand = commands[currentCommandNum];
+            Command Command = commands[currentCommandNum];
             currentCommandNum++;
-            moveCommand.Execute();
+            Command.Execute();
         }
+    }
+
+    private void InsertCommand(Command command)
+    {
+        commands.Insert(currentCommandNum++, command);
     }
 
     private void Move(MoveDirection direction)
     {
-        MoveCommand moveCommand = new MoveCommand(moveCommandReciever, direction, moveDistance, objectToMove);
-        moveCommand.Execute();
-        commands.Add(moveCommand);
-        currentCommandNum++;
+        Command command = new MoveCommand(moveReceiver, direction, moveDistance, objectTarget);
+        command.Execute();
+        InsertCommand(command);
+    }
+
+    private void ChangeColor(Color color)
+    {
+        Command command = new ChangeColorCommand(changeColorReceiver, color, objectTarget);
+        command.Execute();
+        InsertCommand(command);
     }
 
 
@@ -60,6 +73,10 @@ public class InputHandler : MonoBehaviour
     public void MoveDown() { Move(MoveDirection.down); }
     public void MoveLeft() { Move(MoveDirection.left); }
     public void MoveRight() { Move(MoveDirection.right); }
+
+    public void Blue() { ChangeColor(Color.blue); }
+    public void Red() { ChangeColor(Color.red); }
+    public void Green() { ChangeColor(Color.green); }
 
     //Shows what's going on in the command list
     void OnGUI()

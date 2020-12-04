@@ -2,8 +2,8 @@
 /// <summary>
 /// The 'Command' abstract class that we will inherit from
 /// </summary>
-public interface Command
+public abstract class Command
 {
-        void Execute();
-        void UnExecute();
-    }
+    public abstract void Execute();
+    public abstract void UnExecute();
+}
